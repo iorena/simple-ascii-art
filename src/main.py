@@ -1,6 +1,6 @@
 import cv2 
 import sys
-import asciifier
+from asciifier import Asciifier
 
 def main():
 	try:
@@ -8,6 +8,7 @@ def main():
 	except:
 		print 'Error reading image.'
 		sys.exit(0)
+	asciifier = Asciifier()
 	print asciifier.asciify(image)
 
 
