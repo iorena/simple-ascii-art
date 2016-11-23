@@ -4,7 +4,7 @@ from asciifier import Asciifier
 
 def main():
 	try:
-		image = cv2.imread(sys.argv[1])
+		image = cv2.imread(sys.argv[1], 0)
 	except:
 		print 'Error reading image.'
 		sys.exit(0)
