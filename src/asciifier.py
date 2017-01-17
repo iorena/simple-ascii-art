@@ -17,15 +17,15 @@ class Asciifier:
 
 	def asciify(self, image):
 		self.getBlockSize(image)
-		self.img = cv2.Canny(self.img, 200, 200)
+		self.img = cv2.Canny(self.img, 170, 200)
 		self.loadSamples()
 		self.chars = ''
+		cv2.imshow('', self.img)
+		cv2.waitKey(0)
 		#match each block with an ascii char
 		for x in range(0, self.maxX):
 			for y in range(0, self.maxY):
 				block = self.getBlock(x, y)
-				#cv2.imshow('', block)
-				#cv2.waitKey(0)
 				self.chars += self.getAscii(block)
 		#add line breaks
 		for x in range(0, self.maxY):
@@ -61,18 +61,34 @@ class Asciifier:
 			self.samples[n-1] = cv2.imread('letter'+str(n)+'.jpg', 0)
 
 
+	#compare char sized block to sample images
 	def getAscii(self, block):
-		results = [None] * 32
-		for x in range(0,31):
+		angles = 11
+		results = [[] for i in range(32)] 
+		for x in range(0, 31):
 			sample = self.samples[x]
 			sample = cv2.resize(sample, (self.stepX, self.stepY))
-			#print 'x', x, sample.shape[1], block.shape[1]
-			#print 'y', x, sample.shape[0], block.shape[0]
-			res = cv2.matchTemplate(block, sample, 5)
-			min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-			if min_val != 0.0:
-				print min_val, max_val, x
-			results[x] = max_val
-		index = results.index(max(results))
+			rotResults = []
+			for y in range(1, angles):
+				angle = y * 5 - 30
+				rotatedSample = self.rotate(sample, angle)
+				#cv2.imshow("rotated", rotatedSample)
+				#cv2.waitKey(0)
+				res = cv2.matchTemplate(block, rotatedSample, 0)
+				min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+				rotResults.append(min_val)
+			#if min_val != 0.0:
+				#print min_val, max_val, x
+			results[x] = min(rotResults)
+
+
+		index = results.index(min(results))
 		#print index
 		return self.letters[index]
+
+	#returns rotated image
+	def rotate(self, source, angle):
+		center = (self.stepX / 2, self.stepY / 2)
+		rot = cv2.getRotationMatrix2D(center, angle, 1.0)
+		rotated = cv2.warpAffine(source, rot, (self.stepX, self.stepY))
+		return rotated
